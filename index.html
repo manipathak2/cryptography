@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Caesar Cipher Tool</title>
+    <link rel="index.css" type="stylesheet" href="index.css"/>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-8">
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">
+          Caesar Cipher Cryptography Tool
+        </h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="space-y-4">
+            <div class="flex gap-4 mb-6">
+              <button
+                onclick="setMode('encrypt')"
+                id="encryptBtn"
+                class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-green-600 text-white"
+              >
+                Encrypt
+              </button>
+              <button
+                onclick="setMode('decrypt')"
+                id="decryptBtn"
+                class="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-600"
+              >
+                Decrypt
+              </button>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                Shift Key (1-25)
+              </label>
+              <input
+                type="number"
+                id="shiftKey"
+                min="1"
+                max="25"
+                value="3"
+                onchange="handleShiftChange(event)"
+                class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                Input Text
+              </label>
+              <textarea
+                id="input"
+                class="w-full h-40 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Enter your text here..."
+              ></textarea>
+            </div>
+
+            <button
+              onclick="handleCipher()"
+              class="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Process Text
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700">
+                Output
+              </label>
+              <textarea
+                id="output"
+                readonly
+                class="w-full h-40 px-4 py-2 border rounded-lg bg-gray-50"
+                placeholder="Output will appear here..."
+              ></textarea>
+            </div>
+
+            <button
+              onclick="handleDownload()"
+              id="downloadBtn"
+              class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors hidden"
+            >
+              Download Result
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentMode = 'encrypt';
+      let shift = 3;
+
+      function setMode(mode) {
+        currentMode = mode;
+        document.getElementById('encryptBtn').className = mode === 'encrypt' 
+          ? 'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-green-600 text-white'
+          : 'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-600';
+        document.getElementById('decryptBtn').className = mode === 'decrypt'
+          ? 'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-blue-600 text-white'
+          : 'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-gray-100 text-gray-600';
+      }
+
+      function handleShiftChange(event) {
+        shift = Math.max(1, Math.min(25, parseInt(event.target.value) || 1));
+        event.target.value = shift;
+      }
+
+      function handleCipher() {
+        const input = document.getElementById('input').value;
+        let result = '';
+
+        for (let i = 0; i < input.length; i++) {
+          const char = input[i];
+          if (char.match(/[a-z]/i)) {
+            const isUpperCase = char === char.toUpperCase();
+            const base = isUpperCase ? 'A'.charCodeAt(0) : 'a'.charCodeAt(0);
+            const charCode = char.charCodeAt(0);
+            const shifted = currentMode === 'encrypt'
+              ? (charCode - base + shift) % 26 + base
+              : (charCode - base - shift + 26) % 26 + base;
+            result += String.fromCharCode(shifted);
+          } else {
+            result += char;
+          }
+        }
+
+        document.getElementById('output').value = result;
+        document.getElementById('downloadBtn').classList.remove('hidden');
+      }
+
+      function handleDownload() {
+        const output = document.getElementById('output').value;
+        const blob = new Blob([output], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${currentMode}ed_output.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    </script>
+  </body>
+</html>
